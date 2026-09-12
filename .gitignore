@@ -1,0 +1,32 @@
+# Large datasets and downloaded model assets
+data/
+things-eeg/
+openNeuro/
+
+# Reports, serialized tensors, and model checkpoints
+*.pdf
+*.npy
+*.npz
+*.pt
+*.pth
+*.zip
+
+# Keep lightweight result images, but not histories or tensor dumps
+outputs/**
+!outputs/**/
+!outputs/**/*.png
+outputs/*-smoke/
+outputs/smoke/
+
+# Legacy local experiments
+01_preprocess_things_eeg_v1.py
+verify.py
+
+# Python and editor artifacts
+__pycache__/
+*.py[cod]
+*.swp
+.DS_Store
+.pytest_cache/
+.venv/
+venv/
