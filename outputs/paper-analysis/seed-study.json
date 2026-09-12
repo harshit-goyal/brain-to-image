@@ -1,0 +1,150 @@
+{
+  "subject": 1,
+  "split": "test",
+  "repetitions_averaged": 80,
+  "runs": [
+    {
+      "seed": 42,
+      "checkpoint": "outputs/sub-01/best.pt",
+      "checkpoint_epoch": 12.0,
+      "metrics": {
+        "samples": 200.0,
+        "mean_cosine": 0.21901153028011322,
+        "median_rank": 8.0,
+        "mean_rank": 17.110000610351562,
+        "image_top1": 0.13500000536441803,
+        "concept_top1": 0.13500000536441803,
+        "chance_image_top1": 0.005,
+        "chance_concept_top1": 0.004999998956918716,
+        "image_top5": 0.4099999964237213,
+        "concept_top5": 0.4099999964237213,
+        "chance_image_top5": 0.025,
+        "chance_concept_top5": 0.02500000409781933,
+        "image_top10": 0.5899999737739563,
+        "concept_top10": 0.5899999737739563,
+        "chance_image_top10": 0.05,
+        "chance_concept_top10": 0.05000000819563866,
+        "shuffled_image_top1": 0.004999999888241291,
+        "shuffled_concept_top1": 0.004999999888241291,
+        "shuffled_image_top5": 0.019999999552965164,
+        "shuffled_concept_top5": 0.019999999552965164,
+        "shuffled_image_top10": 0.03500000014901161,
+        "shuffled_concept_top10": 0.03500000014901161
+      }
+    },
+    {
+      "seed": 7,
+      "checkpoint": "outputs/sub-01-seed-7/best.pt",
+      "checkpoint_epoch": 12.0,
+      "metrics": {
+        "samples": 200.0,
+        "mean_cosine": 0.21885451674461365,
+        "median_rank": 8.0,
+        "mean_rank": 17.165000915527344,
+        "image_top1": 0.125,
+        "concept_top1": 0.125,
+        "chance_image_top1": 0.005,
+        "chance_concept_top1": 0.004999998956918716,
+        "image_top5": 0.38999998569488525,
+        "concept_top5": 0.38999998569488525,
+        "chance_image_top5": 0.025,
+        "chance_concept_top5": 0.02500000409781933,
+        "image_top10": 0.5899999737739563,
+        "concept_top10": 0.5899999737739563,
+        "chance_image_top10": 0.05,
+        "chance_concept_top10": 0.05000000819563866,
+        "shuffled_image_top1": 0.0,
+        "shuffled_concept_top1": 0.0,
+        "shuffled_image_top5": 0.014999999664723873,
+        "shuffled_concept_top5": 0.014999999664723873,
+        "shuffled_image_top10": 0.05000000074505806,
+        "shuffled_concept_top10": 0.05000000074505806
+      }
+    },
+    {
+      "seed": 21,
+      "checkpoint": "outputs/sub-01-seed-21/best.pt",
+      "checkpoint_epoch": 12.0,
+      "metrics": {
+        "samples": 200.0,
+        "mean_cosine": 0.21620258688926697,
+        "median_rank": 9.0,
+        "mean_rank": 17.149999618530273,
+        "image_top1": 0.125,
+        "concept_top1": 0.125,
+        "chance_image_top1": 0.005,
+        "chance_concept_top1": 0.004999998956918716,
+        "image_top5": 0.375,
+        "concept_top5": 0.375,
+        "chance_image_top5": 0.025,
+        "chance_concept_top5": 0.02500000409781933,
+        "image_top10": 0.5600000023841858,
+        "concept_top10": 0.5600000023841858,
+        "chance_image_top10": 0.05,
+        "chance_concept_top10": 0.05000000819563866,
+        "shuffled_image_top1": 0.004999999888241291,
+        "shuffled_concept_top1": 0.004999999888241291,
+        "shuffled_image_top5": 0.03500000014901161,
+        "shuffled_concept_top5": 0.03500000014901161,
+        "shuffled_image_top10": 0.06499999761581421,
+        "shuffled_concept_top10": 0.06499999761581421
+      }
+    }
+  ],
+  "aggregate": {
+    "image_top1": {
+      "mean": 0.12833333512147269,
+      "sample_std": 0.005773505789044451,
+      "values": [
+        0.13500000536441803,
+        0.125,
+        0.125
+      ]
+    },
+    "image_top5": {
+      "mean": 0.3916666607062022,
+      "sample_std": 0.017559421733364042,
+      "values": [
+        0.4099999964237213,
+        0.38999998569488525,
+        0.375
+      ]
+    },
+    "image_top10": {
+      "mean": 0.5799999833106995,
+      "sample_std": 0.017320491557565074,
+      "values": [
+        0.5899999737739563,
+        0.5899999737739563,
+        0.5600000023841858
+      ]
+    },
+    "median_rank": {
+      "mean": 8.333333333333334,
+      "sample_std": 0.5773502691896257,
+      "values": [
+        8.0,
+        8.0,
+        9.0
+      ]
+    },
+    "mean_rank": {
+      "mean": 17.141667048136394,
+      "sample_std": 0.02843118339753015,
+      "values": [
+        17.110000610351562,
+        17.165000915527344,
+        17.149999618530273
+      ]
+    },
+    "mean_cosine": {
+      "mean": 0.21802287797133127,
+      "sample_std": 0.001578371955581023,
+      "values": [
+        0.21901153028011322,
+        0.21885451674461365,
+        0.21620258688926697
+      ]
+    }
+  }
+}

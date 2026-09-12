@@ -40,18 +40,20 @@ retrieve the viewed stimulus in a visual embedding space. A compact
 temporal--spatial convolutional encoder maps repetition-averaged EEG
 ($63\times250$) to provided 512-dimensional ViT-B/32 image features. Model
 selection uses a concept-disjoint validation split, and final evaluation uses
-the official 200-image, 200-concept test gallery. The model obtains
-13.5\%, 41.0\%, and 59.0\% image recall at 1, 5, and 10, respectively, compared
-with analytical chance levels of 0.5\%, 2.5\%, and 5.0\%. A fixed shuffled-EEG
-control obtains 0.5\%, 2.0\%, and 3.5\%. We further report exploratory stress
-tests of direct conditional generators trained without external visual
+the official 200-image, 200-concept test gallery. Across three training seeds, the model obtains
+$12.83\pm0.58$\%, $39.17\pm1.76$\%, and $58.00\pm1.73$\% image recall at 1,
+5, and 10 (mean $\pm$ sample standard deviation), compared with analytical
+chance levels of 0.5\%, 2.5\%, and 5.0\%. A session-balanced ablation shows
+that averaging more test repetitions generally improves ranking. Applying the
+Subject 01 model to the other nine subjects without adaptation causes a sharp
+performance drop, exposing subject specificity. We further report exploratory
+stress tests of direct conditional generators trained without external visual
 weights. Single-subject and ten-subject variants produce noise-dominated
 outputs; early decreases in validation $\ell_1$ reverse after one to four
-epochs. Finally, we distinguish
-direct reconstruction from semantic rendering with a pretrained diffusion
-prior. The results support reliable coarse semantic decoding under a
-closed-set, repetition-averaged protocol, but do not support faithful recovery
-of stimulus pixels. Code is available at
+epochs. Finally, we distinguish direct reconstruction from semantic rendering
+with a pretrained diffusion prior. The results support reliable coarse
+semantic decoding under a closed-set, repetition-averaged protocol, but do not
+support faithful recovery of stimulus pixels. Code is available at
 \url{https://github.com/harshit-goyal/brain-to-image}.
 \end{abstract}
 
@@ -87,11 +89,28 @@ Our contributions are:
   THINGS-EEG2;
   \item concept-disjoint validation, official 200-concept testing, analytical
   chance levels, and a shuffled-pair negative control;
-  \item measured single-subject recall substantially above chance; and
+  \item three-seed, session-balanced repetition, and cross-subject robustness
+  analyses; and
   \item transparent, compute-bounded failure cases for direct single- and
   multi-subject conditional generation trained without pretrained visual
   weights.
 \end{itemize}
+
+\subsection{Research questions and scope}
+
+We organize the study around three research questions:
+\begin{enumerate}
+  \item[\textbf{RQ1}] Does repetition-averaged EEG retrieve an unseen visual
+  concept above closed-gallery chance?
+  \item[\textbf{RQ2}] How sensitive is retrieval to the number of EEG
+  repetitions, random initialization, and subject shift?
+  \item[\textbf{RQ3}] Under the available image and compute budget, what
+  failure modes arise when the visual generator is trained from random
+  initialization?
+\end{enumerate}
+RQ1 is the primary confirmatory experiment. RQ2 consists of robustness
+analyses, while RQ3 is an exploratory stress test. We do not claim open-world,
+single-trial, cross-subject, or faithful pixel reconstruction.
 
 \section{Related Work}
 
@@ -156,6 +175,22 @@ single-trial decoding. No new human participants were recruited, and this work
 uses only the released, anonymized dataset under its original data-governance
 and ethics procedures.
 
+\begin{table}[t]
+  \centering
+  \caption{Primary Subject 01 data used in this study. Repetitions are averaged
+  into one encoder input per image.}
+  \label{tab:data}
+  \begin{tabular}{lrrr}
+    \toprule
+    Partition & Images & Concepts & Repetitions/image\\
+    \midrule
+    Optimization & 14,890 & 1,489 & 4\\
+    Validation & 1,650 & 165 & 4\\
+    Official test & 200 & 200 & 80\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \subsection{Leakage-aware split}
 
 The official test set remains untouched during training and model selection.
@@ -189,6 +224,26 @@ depthwise temporal convolution of width 15 and a pointwise convolution produce
 representation is projected to 512 dimensions, layer-normalized, and
 $\ell_2$-normalized.
 
+\begin{table}[t]
+  \centering
+  \caption{EEG encoder architecture. The model has 999,008 trainable
+  parameters; 98.6\% are in the final projection.}
+  \label{tab:architecture}
+  \begin{tabular}{llll}
+    \toprule
+    Stage & Operation & Output channels & Temporal width\\
+    \midrule
+    Input & EEG tensor & 63 & 250\\
+    Temporal & Conv2D, kernel $1\times25$ & 32 & 250\\
+    Spatial & grouped Conv2D, kernel $63\times1$ & 64 & 250\\
+    Pool 1 & average pool $1\times4$ & 64 & 62\\
+    Separable & depthwise $1\times15$, pointwise & 128 & 62\\
+    Pool 2 & average pool $1\times4$ & 128 & 15\\
+    Projection & flatten, linear, layer norm & 512 & 1\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
 \subsection{Alignment objective}
 
 Let $\hat{z}_i$ denote the normalized EEG prediction and $z_i$ the normalized
@@ -213,9 +268,26 @@ $3\times10^{-4}$, weight decay $10^{-3}$, batch size 128, dropout 0.35, and
 gradient-norm clipping at 1.0. Temporal kernels span 100\,ms and 60\,ms at the
 250\,Hz sampling rate. The fixed 12-epoch budget and remaining hyperparameters
 were chosen before test evaluation. The checkpoint with the highest validation
-concept recall at 5 is selected; this was the final epoch and validation had
-not fully saturated, so the run should be treated as a baseline rather than an
-optimized estimate.
+concept recall at 5 is selected. The final epoch was selected in each of the
+three seeds and validation had not fully saturated, so the runs should be
+treated as baselines rather than optimized estimates.
+
+\begin{table}[t]
+  \centering
+  \caption{Primary retrieval training configuration.}
+  \label{tab:hyperparameters}
+  \begin{tabular}{lr@{\qquad}lr}
+    \toprule
+    Setting & Value & Setting & Value\\
+    \midrule
+    Optimizer & AdamW & Batch size & 128\\
+    Learning rate & $3\times10^{-4}$ & Weight decay & $10^{-3}$\\
+    Epoch budget & 12 & Dropout & 0.35\\
+    Temperature & 0.07 & Cosine weight & 0.25\\
+    Gradient clip & 1.0 & Validation fraction & 0.10\\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \subsection{Retrieval evaluation}
 
@@ -227,6 +299,17 @@ chance is $k/200$. We additionally apply one deterministic random permutation
 to EEG--stimulus correspondences and report the resulting shuffled control.
 Because only one permutation is used, this control is expected to fluctuate
 around analytical chance and is not a permutation-test estimate.
+
+\paragraph{Metric definitions.}
+For query $i$, let $r_i$ be the one-indexed rank of its paired image among the
+gallery. Recall at $k$ is
+\[
+  R@k = \frac{1}{N}\sum_{i=1}^{N}\mathbb{1}[r_i\leq k].
+\]
+We additionally report mean and median rank and paired cosine similarity.
+Wilson intervals treat the 200 test concepts as Bernoulli observations. The
+shared candidate gallery introduces dependence, so intervals are descriptive
+rather than a complete hierarchical uncertainty model.
 
 \section{Results}
 
@@ -274,6 +357,110 @@ approximately 3.00\%. Validation image recall at 5 reaches 8.12\%, compared
 with image-level chance of approximately 0.30\%. The
 divergence between image and concept retrieval on validation is expected
 because each validation concept has multiple image instances.
+
+\subsection{Robustness analyses}
+
+To address RQ2, we repeat the complete Subject 01 training protocol with seeds
+7 and 21 alongside the original seed 42. Table~\ref{tab:seeds} shows limited
+run-to-run variation. Recall@1 ranges from 12.5\% to 13.5\%, and all runs have
+a median rank of 8 or 9. The aggregate standard deviations are small relative
+to the gap from analytical chance, although three seeds remain insufficient
+for a full characterization of optimization uncertainty.
+
+\begin{table}[t]
+  \centering
+  \caption{Official Subject 01 test results across independently initialized
+  training runs. The last row reports mean $\pm$ sample standard deviation.}
+  \label{tab:seeds}
+  \begin{tabular}{lrrrr}
+    \toprule
+    Seed & R@1 & R@5 & R@10 & Median rank\\
+    \midrule
+    42 & 13.5\% & 41.0\% & 59.0\% & 8\\
+    7  & 12.5\% & 39.0\% & 59.0\% & 8\\
+    21 & 12.5\% & 37.5\% & 56.0\% & 9\\
+    \midrule
+    Aggregate & $12.83\pm0.58$\% & $39.17\pm1.76$\% &
+    $58.00\pm1.73$\% & $8.33\pm0.58$\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+We next hold the seed-42 weights fixed and vary test-time averaging. The 80
+test repetitions comprise four sessions of 20 repetitions. To avoid
+confounding repetition count with session coverage, each ablation averages an
+equal number of the earliest repetitions from every session. Consequently,
+the tested totals are 4, 8, 20, 40, and 80 rather than a prefix of the stored
+trial axis. As Table~\ref{tab:repetitions} and
+Figure~\ref{fig:repetitions} show, mean and median rank improve consistently
+with additional repetitions. Recall@5 and recall@10 also rise overall, from
+24.5\% and 37.0\% with four repetitions to 41.0\% and 59.0\% with 80.
+Recall@1 is non-monotonic, peaking at 15.5\% with 20 repetitions; this
+illustrates that top-1 alone is a noisy summary for a 200-query test set.
+
+\begin{table}[t]
+  \centering
+  \caption{Session-balanced repetition ablation for the fixed seed-42 model.
+  Each condition contributes equally from all four test sessions.}
+  \label{tab:repetitions}
+  \begin{tabular}{rrrrrr}
+    \toprule
+    Repetitions & R@1 & R@5 & R@10 & Median rank & Mean rank\\
+    \midrule
+    4  & 9.0\%  & 24.5\% & 37.0\% & 19 & 35.87\\
+    8  & 15.0\% & 31.5\% & 47.5\% & 12 & 26.28\\
+    20 & 15.5\% & 36.0\% & 48.0\% & 11 & 20.45\\
+    40 & 13.5\% & 38.0\% & 56.0\% & 9  & 17.76\\
+    80 & 13.5\% & 41.0\% & 59.0\% & 8  & 17.11\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.94\linewidth]{figures/repetition_ablation.png}
+  \caption{Retrieval versus the number of session-balanced test repetitions.
+  Higher-$k$ recall improves overall as averaging suppresses trial noise.}
+  \label{fig:repetitions}
+\end{figure}
+
+Finally, we apply the seed-42 Subject 01 model without fine-tuning to the
+official test data of Subjects 02--10, averaging all 80 repetitions. This
+strict transfer test retains the shared channel layout and preprocessing but
+does not estimate a subject-adapted mapping. Table~\ref{tab:crosssubject} and
+Figure~\ref{fig:crosssubject} show a large transfer penalty: recall@10 falls
+from 59.0\% on Subject 01 to 15.5--33.5\% on the other subjects, while median
+rank worsens from 8 to 21--48. Every transferred subject remains numerically
+above analytical chance at recall@10, but these exploratory values should not
+be read as inferential evidence without subject-level training replications
+and uncertainty estimates.
+
+\begin{table}[t]
+  \centering
+  \caption{Subject 01 model evaluated without adaptation on all subjects.
+  Analytical chance is 0.5\%, 2.5\%, and 5.0\% at ranks 1, 5, and 10.}
+  \label{tab:crosssubject}
+  \begin{tabular}{rrrrr@{\qquad}rrrrr}
+    \toprule
+    Subj. & R@1 & R@5 & R@10 & Med. & Subj. & R@1 & R@5 & R@10 & Med.\\
+    \midrule
+    1 & 13.5 & 41.0 & 59.0 & 8  & 6  & 4.5 & 11.5 & 19.0 & 39\\
+    2 & 4.0  & 16.0 & 24.5 & 28 & 7  & 1.0 & 10.5 & 18.5 & 42\\
+    3 & 2.0  & 10.5 & 18.5 & 48 & 8  & 3.0 & 13.5 & 20.5 & 40\\
+    4 & 4.5  & 14.0 & 22.5 & 31 & 9  & 2.0 & 8.5  & 16.5 & 46\\
+    5 & 2.5  & 9.0  & 15.5 & 40 & 10 & 5.0 & 20.0 & 33.5 & 21\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.94\linewidth]{figures/cross_subject.png}
+  \caption{Zero-adaptation transfer of the Subject 01 encoder. Performance
+  drops sharply for every other participant, indicating subject-specific
+  neural-to-visual mappings.}
+  \label{fig:crosssubject}
+\end{figure}
 
 \section{Generation Stress Tests}
 
@@ -336,6 +523,15 @@ information that generalizes to unseen THINGS-EEG2 concepts in a closed
 shuffled control is consistent with random correspondence. The experiment
 therefore supports coarse semantic decoding under this protocol.
 
+The robustness analyses qualify that result. Similar performance across three
+initializations suggests that the finding is not driven by one fortunate
+seed. Session-balanced averaging improves rank and higher-$k$ recall, showing
+that much of the reported accuracy depends on repeated measurements rather
+than single-trial signal quality. Cross-subject transfer is consistently much
+weaker than within-subject performance. A deployable decoder would therefore
+need subject-specific calibration or an explicitly trained subject-invariant
+representation; neither is demonstrated here.
+
 The generation experiments produce a complementary conclusion. Pixel losses
 encourage average-looking images, while adversarial training with limited
 paired data is unstable. Increasing the number of subjects adds neural
@@ -353,23 +549,45 @@ and comparisons against class-only prompts.
 
 \section{Limitations}
 
-The primary result is subject-specific and uses only Subject 01. Eighty test
-repetitions are averaged for each stimulus, so performance should not be
-interpreted as real-time or single-trial decoding. Evaluation is closed-set:
+The primary training result is subject-specific and uses only Subject 01.
+Zero-adaptation transfer to other subjects degrades sharply and is not a
+substitute for independently trained within-subject models. Eighty test
+repetitions are averaged for each stimulus, and the repetition ablation starts
+at four trials to preserve equal session representation; performance should
+not be interpreted as real-time or single-trial decoding. Evaluation is closed-set:
 the model ranks a known gallery rather than identifying an arbitrary image
 from the open world. The study uses provided ViT-B/32 features and therefore
-inherits their pretrained visual semantics. Only one training seed and one
-shuffled permutation are reported. Hyperparameters were selected for a
-practical baseline rather than through a comprehensive search. Finally,
-direct image generation did not succeed; visual realism from the auxiliary
-diffusion experiment comes primarily from the pretrained generator.
+inherits their pretrained visual semantics. Three training seeds reduce but
+do not eliminate optimization uncertainty, and only one shuffled permutation
+is reported. The repetition conditions reuse the same test concepts and use
+the earliest trials per session rather than resampling all possible subsets.
+Hyperparameters were selected for a practical baseline rather than through a
+comprehensive search. Finally, direct image generation did not succeed;
+visual realism from the auxiliary diffusion experiment comes primarily from
+the pretrained generator.
+
+\section{Ethical Considerations}
+
+Brain-decoding results are vulnerable to sensational interpretation. The
+present system cannot recover private thoughts, operate without a controlled
+visual-stimulus protocol, or reconstruct arbitrary images. Its strongest
+result uses 80 repeated test presentations and a known 200-image gallery.
+Reporting the work as ``mind reading'' would therefore be inaccurate.
+Potential future applications should require informed consent, clear limits
+on secondary use, secure handling of neural recordings, and evaluation across
+demographic and physiological variation. Because this study performs
+secondary analysis of an anonymized public dataset, it introduces no new
+participant intervention.
 
 \section{Conclusion}
 
 A compact EEG encoder can retrieve unseen visual concepts from the official
 THINGS-EEG2 test gallery substantially above chance when repeated trials are
-averaged. In contrast, direct generators trained from scratch on the available
-paired images collapse or produce blurred, noise-dominated outputs. The key
+averaged, with similar results across three training seeds. Session-balanced
+analysis confirms a strong dependence on repeated measurements, while
+zero-adaptation evaluation reveals substantial cross-subject degradation. In
+contrast, direct generators trained from scratch on the available paired
+images collapse or produce blurred, noise-dominated outputs. The key
 methodological conclusion is that semantic EEG decoding and photorealistic
 image synthesis must be evaluated separately. Retrieval provides evidence
 about information present in EEG, whereas a powerful image prior determines
@@ -384,6 +602,31 @@ and result artifacts, are available at
 model checkpoints are excluded from version control. The repository records
 the random seed, architecture, split procedure, analytical baselines, and
 fixed shuffled control used for the reported experiment.
+
+\appendix
+\section{Implementation and Reproduction Details}
+
+Experiments were executed with Python 3.9, PyTorch 2.8, and NumPy 2.0 on a
+MacBook Air with an Apple M2 processor (8 CPU cores), 16\,GB unified memory,
+and the PyTorch MPS backend. Dataset files are loaded as float16 and converted
+to float32 per sample before repetition averaging. Data-loader workers remain
+at zero on macOS to avoid copying the approximately 2\,GB in-memory subject
+array into spawned workers.
+
+The main commands are:
+\begin{verbatim}
+python3 main.py train --subject 1 --epochs 12 \
+  --batch-size 128 --seed 42 --device mps
+python3 main.py evaluate --checkpoint outputs/sub-01/best.pt \
+  --split test --device mps
+python3 paper/analyze_robustness.py --device mps
+python3 paper/analyze_seeds.py --device mps
+\end{verbatim}
+
+Each reported output directory includes a JSON configuration, epoch history,
+and evaluation metrics. Dataset tensors, downloaded model weights, and
+checkpoints are omitted from Git because of size; paths and expected tensor
+shapes are documented in the repository README.
 
 \bibliographystyle{plain}
 \bibliography{references}
