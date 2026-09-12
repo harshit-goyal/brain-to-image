@@ -1,0 +1,114 @@
+\begin{thebibliography}{10}
+
+\bibitem{bai2024dreamdiffusion}
+Yunpeng Bai, Xintao Wang, Yan-pei Cao, Yixiao Ge, Chun Yuan, and Ying Shan.
+\newblock {DreamDiffusion}: High-quality {EEG}-to-image generation with
+  temporal masked signal modeling and {CLIP} alignment.
+\newblock In {\em Computer Vision -- ECCV 2024}, pages 472--488. Springer,
+  2024.
+
+\bibitem{brookshire2024leakage}
+Geoffrey Brookshire, Jake Kasper, Nicholas~M. Blauch, Yunan~Charles Wu, Ryan
+  Glatt, David~A. Merrill, Spencer Gerrol, Keith~J. Yoder, Colin Quirk, and
+  Ch{\'e} Lucero.
+\newblock Data leakage in deep learning studies of translational {EEG}.
+\newblock {\em Frontiers in Neuroscience}, 18:1373515, 2024.
+
+\bibitem{gifford2022things_eeg2}
+Alessandro~T. Gifford, Kshitij Dwivedi, Gemma Roig, and Radoslaw~M. Cichy.
+\newblock A large and rich {EEG} dataset for modeling human visual object
+  recognition.
+\newblock {\em NeuroImage}, 264:119754, 2022.
+
+\bibitem{kavasidis2017brain2image}
+Isaak Kavasidis, Simone Palazzo, Concetto Spampinato, Daniela Giordano, and
+  Mubarak Shah.
+\newblock {Brain2Image}: Converting brain signals into images.
+\newblock In {\em Proceedings of the 25th ACM International Conference on
+  Multimedia}, pages 1809--1817. ACM, 2017.
+
+\bibitem{lawhern2018eegnet}
+Vernon~J. Lawhern, Amelia~J. Solon, Nicholas~R. Waytowich, Stephen~M. Gordon,
+  Chou~P. Hung, and Brent~J. Lance.
+\newblock {EEGNet}: A compact convolutional neural network for {EEG}-based
+  brain--computer interfaces.
+\newblock {\em Journal of Neural Engineering}, 15(5):056013, 2018.
+
+\bibitem{li2024visual_decoding}
+Dongyang Li, Chen Wei, Shiying Li, Jiachen Zou, and Quanying Liu.
+\newblock Visual decoding and reconstruction via {EEG} embeddings with guided
+  diffusion.
+\newblock In {\em Advances in Neural Information Processing Systems},
+  volume~37, pages 102822--102864, 2024.
+
+\bibitem{li2019training_test_set}
+Ren Li, Jared~S. Johansen, Hamad Ahmed, Thomas~V. Ilyevsky, Ronnie~B. Wilbur,
+  Hari~M. Bharadwaj, and Jeffrey~Mark Siskind.
+\newblock Training on the test set? an analysis of spampinato et al.
+\newblock {\em arXiv preprint arXiv:1812.07697}, 2019.
+
+\bibitem{palazzo2021multimodal}
+Simone Palazzo, Concetto Spampinato, Isaak Kavasidis, Daniela Giordano, Joseph
+  Schmidt, and Mubarak Shah.
+\newblock Decoding brain representations by multimodal learning of neural
+  activity and visual features.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  43(11):3833--3849, 2021.
+
+\bibitem{palazzo2017gan_brain}
+Simone Palazzo, Concetto Spampinato, Isaak Kavasidis, Daniela Giordano, and
+  Mubarak Shah.
+\newblock Generative adversarial networks conditioned by brain signals.
+\newblock In {\em 2017 IEEE International Conference on Computer Vision}, pages
+  3430--3438. IEEE, 2017.
+
+\bibitem{radford2021clip}
+Alec Radford, Jong~Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh,
+  Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark,
+  Gretchen Krueger, and Ilya Sutskever.
+\newblock Learning transferable visual models from natural language
+  supervision.
+\newblock In {\em Proceedings of the 38th International Conference on Machine
+  Learning}, volume 139 of {\em Proceedings of Machine Learning Research},
+  pages 8748--8763. PMLR, 2021.
+
+\bibitem{rombach2022latentdiffusion}
+Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Bj{\"o}rn
+  Ommer.
+\newblock High-resolution image synthesis with latent diffusion models.
+\newblock In {\em 2022 IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition}, pages 10684--10695. IEEE, 2022.
+
+\bibitem{sauer2023add}
+Axel Sauer, Dominik Lorenz, Andreas Blattmann, and Robin Rombach.
+\newblock Adversarial diffusion distillation.
+\newblock {\em arXiv preprint arXiv:2311.17042}, 2023.
+
+\bibitem{schirrmeister2017deep}
+Robin~Tibor Schirrmeister, Jost~Tobias Springenberg, Lukas Dominique~Josef
+  Fiederer, Martin Glasstetter, Katharina Eggensperger, Michael Tangermann,
+  Frank Hutter, Wolfram Burgard, and Tonio Ball.
+\newblock Deep learning with convolutional neural networks for {EEG} decoding
+  and visualization.
+\newblock {\em Human Brain Mapping}, 38(11):5391--5420, 2017.
+
+\bibitem{song2024nice}
+Yonghao Song, Bingchuan Liu, Xiang Li, Nanlin Shi, Yijun Wang, and Xiaorong
+  Gao.
+\newblock Decoding natural images from {EEG} for object recognition.
+\newblock In {\em International Conference on Learning Representations}, 2024.
+
+\bibitem{spampinato2017humanmind}
+Concetto Spampinato, Simone Palazzo, Isaak Kavasidis, Daniela Giordano, Nasim
+  Souly, and Mubarak Shah.
+\newblock Deep learning human mind for automated visual classification.
+\newblock In {\em 2017 IEEE Conference on Computer Vision and Pattern
+  Recognition}, pages 4503--4511. IEEE, 2017.
+
+\bibitem{wu2025ubp}
+Haitao Wu, Qing Li, Changqing Zhang, Zhen He, and Xiaomin Ying.
+\newblock Bridging the vision-brain gap with an uncertainty-aware blur prior.
+\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition}, pages 2246--2257, 2025.
+
+\end{thebibliography}

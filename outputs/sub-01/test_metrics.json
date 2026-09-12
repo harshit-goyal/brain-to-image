@@ -1,0 +1,31 @@
+{
+  "subject": 1,
+  "split": "test",
+  "checkpoint": "outputs/sub-01/best.pt",
+  "checkpoint_epoch": 12.0,
+  "repetitions_averaged": 80,
+  "metrics": {
+    "samples": 200.0,
+    "mean_cosine": 0.21901153028011322,
+    "median_rank": 8.0,
+    "mean_rank": 17.110000610351562,
+    "image_top1": 0.13500000536441803,
+    "concept_top1": 0.13500000536441803,
+    "chance_image_top1": 0.005,
+    "chance_concept_top1": 0.004999998956918716,
+    "image_top5": 0.4099999964237213,
+    "concept_top5": 0.4099999964237213,
+    "chance_image_top5": 0.025,
+    "chance_concept_top5": 0.02500000409781933,
+    "image_top10": 0.5899999737739563,
+    "concept_top10": 0.5899999737739563,
+    "chance_image_top10": 0.05,
+    "chance_concept_top10": 0.05000000819563866,
+    "shuffled_image_top1": 0.004999999888241291,
+    "shuffled_concept_top1": 0.004999999888241291,
+    "shuffled_image_top5": 0.019999999552965164,
+    "shuffled_concept_top5": 0.019999999552965164,
+    "shuffled_image_top10": 0.03500000014901161,
+    "shuffled_concept_top10": 0.03500000014901161
+  }
+}

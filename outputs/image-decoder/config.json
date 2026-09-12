@@ -1,0 +1,14 @@
+{
+  "command": "train-decoder",
+  "epochs_requested": 25,
+  "epochs_completed": 10,
+  "batch_size": 128,
+  "learning_rate": 0.0002,
+  "weight_decay": 0.0001,
+  "gradient_clip": 1.0,
+  "validation_fraction": 0.1,
+  "patience": 5,
+  "image_size": 64,
+  "device": "mps",
+  "seed": 42
+}

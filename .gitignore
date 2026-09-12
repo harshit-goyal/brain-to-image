@@ -4,7 +4,7 @@ things-eeg/
 openNeuro/
 
 # Reports, serialized tensors, and model checkpoints
-*.pdf
+/2023AC05905final.pdf
 *.npy
 *.npz
 *.pt
@@ -15,6 +15,7 @@ openNeuro/
 outputs/**
 !outputs/**/
 !outputs/**/*.png
+!outputs/**/*.json
 outputs/*-smoke/
 outputs/smoke/
 
@@ -30,3 +31,4 @@ __pycache__/
 .pytest_cache/
 .venv/
 venv/
+paper/build/

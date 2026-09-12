@@ -1,0 +1,58 @@
+[
+  {
+    "target": "test_images/00018_bok_choy/bok_choy_03s.jpg",
+    "retrieved": "test_images/00113_meatloaf/meatloaf_12s.jpg",
+    "target_concept": "bok_choy",
+    "retrieved_concept": "meatloaf",
+    "cosine_similarity": 0.27938368916511536
+  },
+  {
+    "target": "test_images/00086_goose/goose_02s.jpg",
+    "retrieved": "test_images/00087_gopher/gopher_09s.jpg",
+    "target_concept": "goose",
+    "retrieved_concept": "gopher",
+    "cosine_similarity": 0.2903803586959839
+  },
+  {
+    "target": "test_images/00087_gopher/gopher_09s.jpg",
+    "retrieved": "test_images/00087_gopher/gopher_09s.jpg",
+    "target_concept": "gopher",
+    "retrieved_concept": "gopher",
+    "cosine_similarity": 0.41143789887428284
+  },
+  {
+    "target": "test_images/00128_pajamas/pajamas_13s.jpg",
+    "retrieved": "test_images/00083_glove/glove_11s.jpg",
+    "target_concept": "pajamas",
+    "retrieved_concept": "glove",
+    "cosine_similarity": 0.32036346197128296
+  },
+  {
+    "target": "test_images/00140_popcorn/popcorn_07s.jpg",
+    "retrieved": "test_images/00113_meatloaf/meatloaf_12s.jpg",
+    "target_concept": "popcorn",
+    "retrieved_concept": "meatloaf",
+    "cosine_similarity": 0.30441075563430786
+  },
+  {
+    "target": "test_images/00151_robot/robot_02s.jpg",
+    "retrieved": "test_images/00137_piglet/piglet_02s.jpg",
+    "target_concept": "robot",
+    "retrieved_concept": "piglet",
+    "cosine_similarity": 0.26939666271209717
+  },
+  {
+    "target": "test_images/00171_spoon/spoon_04s.jpg",
+    "retrieved": "test_images/00171_spoon/spoon_04s.jpg",
+    "target_concept": "spoon",
+    "retrieved_concept": "spoon",
+    "cosine_similarity": 0.27947571873664856
+  },
+  {
+    "target": "test_images/00199_wine/wine_05s.jpg",
+    "retrieved": "test_images/00020_bottle_opener/bottle_opener_13s.jpg",
+    "target_concept": "wine",
+    "retrieved_concept": "bottle_opener",
+    "cosine_similarity": 0.24017970263957977
+  }
+]

@@ -1,0 +1,391 @@
+\documentclass[10pt]{article}
+
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  citecolor=blue,
+  urlcolor=blue
+}
+\setlength{\emergencystretch}{2em}
+
+\title{EEG-to-Image Retrieval under Limited Data:\\
+A Reproducible THINGS-EEG Baseline with From-Scratch Generation
+Stress Tests}
+\author{
+  Harshit Goyal\\
+  BITS Pilani, India\\
+  \texttt{2023ac05905@wilp.bits-pilani.ac.in}\\
+  \texttt{harshit.goyal.in@gmail.com}
+}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Reconstructing visual stimuli from electroencephalography (EEG) is difficult
+because scalp measurements have high temporal but limited spatial resolution,
+and paired EEG--image datasets remain small relative to modern generative-model
+training corpora. We present a reproducible single-subject baseline on
+THINGS-EEG2 that first tests the more defensible question of whether EEG can
+retrieve the viewed stimulus in a visual embedding space. A compact
+temporal--spatial convolutional encoder maps repetition-averaged EEG
+($63\times250$) to provided 512-dimensional ViT-B/32 image features. Model
+selection uses a concept-disjoint validation split, and final evaluation uses
+the official 200-image, 200-concept test gallery. The model obtains
+13.5\%, 41.0\%, and 59.0\% image recall at 1, 5, and 10, respectively, compared
+with analytical chance levels of 0.5\%, 2.5\%, and 5.0\%. A fixed shuffled-EEG
+control obtains 0.5\%, 2.0\%, and 3.5\%. We further report exploratory stress
+tests of direct conditional generators trained without external visual
+weights. Single-subject and ten-subject variants produce noise-dominated
+outputs; early decreases in validation $\ell_1$ reverse after one to four
+epochs. Finally, we distinguish
+direct reconstruction from semantic rendering with a pretrained diffusion
+prior. The results support reliable coarse semantic decoding under a
+closed-set, repetition-averaged protocol, but do not support faithful recovery
+of stimulus pixels. Code is available at
+\url{https://github.com/harshit-goyal/brain-to-image}.
+\end{abstract}
+
+\section{Introduction}
+
+Visual decoding from brain activity asks whether neural measurements recorded
+during perception retain enough information to identify or reconstruct the
+viewed content. Electroencephalography is attractive for this purpose because
+it is non-invasive, portable, inexpensive relative to functional magnetic
+resonance imaging, and temporally precise. Its low spatial resolution, volume
+conduction, and sensitivity to artifacts nevertheless make image-level
+decoding particularly challenging.
+
+Recent work has combined EEG encoders with semantically structured vision
+representations and powerful pretrained generators
+\cite{song2024nice,li2024visual_decoding,bai2024dreamdiffusion}. This strategy
+can produce visually compelling samples, but the generator contributes
+substantial prior knowledge. Consequently, a plausible image is not by itself
+evidence that stimulus-specific shape, texture, pose, or background was
+recovered from EEG.
+
+This work isolates two questions. First, can a compact EEG encoder recover
+enough information to rank the correct stimulus above unrelated candidates
+under concept-disjoint evaluation? Second, can the available paired data train
+a useful image generator from random initialization? The first question yields
+a positive retrieval result; the second yields a documented negative result.
+This separation prevents image realism supplied by a pretrained prior from
+being mistaken for neural reconstruction fidelity.
+
+Our contributions are:
+\begin{itemize}
+  \item a compact and reproducible EEG-to-visual-feature retrieval pipeline for
+  THINGS-EEG2;
+  \item concept-disjoint validation, official 200-concept testing, analytical
+  chance levels, and a shuffled-pair negative control;
+  \item measured single-subject recall substantially above chance; and
+  \item transparent, compute-bounded failure cases for direct single- and
+  multi-subject conditional generation trained without pretrained visual
+  weights.
+\end{itemize}
+
+\section{Related Work}
+
+\paragraph{EEG visual decoding.}
+Convolutional networks can learn temporal and spatial EEG representations
+directly from sensor-time arrays \cite{schirrmeister2017deep}. EEGNet
+\cite{lawhern2018eegnet} introduced a compact design based on temporal,
+depthwise spatial, and separable convolutions, making it suitable for regimes
+with limited neural data. Early visual-decoding studies reported
+classification and generation from EEG representations
+\cite{spampinato2017humanmind,kavasidis2017brain2image,
+palazzo2017gan_brain,palazzo2021multimodal}. Subsequent analysis showed that
+block-wise acquisition and trial-level splitting can introduce temporal
+leakage and greatly inflate performance \cite{li2019training_test_set}.
+Leakage arising from non-independent EEG segments has also been documented
+more broadly \cite{brookshire2024leakage}. These findings motivate explicit
+definition of the generalization unit and concept-disjoint evaluation.
+
+\paragraph{Large-scale natural-image EEG.}
+THINGS-EEG2 provides EEG responses to a broad set of natural object concepts
+under rapid visual presentation \cite{gifford2022things_eeg2}. NICE aligns EEG
+and image representations contrastively and evaluates zero-shot recognition
+on held-out concepts \cite{song2024nice}. Related work uses EEG embeddings and
+guided diffusion for retrieval and reconstruction
+\cite{li2024visual_decoding}. Our study follows this embedding-space view but
+focuses on a compact, inspectable baseline and explicit controls rather than
+state-of-the-art comparison.
+
+\paragraph{Visual priors and generation.}
+CLIP learns a semantically organized multimodal representation from
+large-scale image--text supervision \cite{radford2021clip}. Latent diffusion
+models similarly acquire extensive visual knowledge from large image corpora
+\cite{rombach2022latentdiffusion}; adversarial diffusion distillation enables
+few-step synthesis \cite{sauer2023add}. DreamDiffusion combines masked EEG
+pretraining, CLIP alignment, and a pretrained diffusion prior
+\cite{bai2024dreamdiffusion}. Such systems are valuable for visualization, but
+their output must be interpreted as a combination of decoded neural evidence
+and generator prior knowledge.
+
+\section{Data and Protocol}
+
+\subsection{Dataset}
+
+We use THINGS-EEG2 \cite{gifford2022things_eeg2} through the derived,
+float16 release distributed with the Uncertainty-Aware Blur Prior (UBP)
+implementation \cite{wu2025ubp}. The UBP preprocessing epochs raw data from
+$-200$ to 1,000\,ms, applies baseline correction through stimulus onset,
+resamples to 250\,Hz, and retains the final 250 samples (0--1,000\,ms).
+Multivariate noise normalization is computed separately by session using only
+training-partition covariance and is then applied to training and test data.
+The primary experiment uses Subject 01. Each EEG observation contains 63
+channels and 250 temporal samples. The training partition contains 16,540
+unique images from 1,654 concepts and four EEG repetitions per image. The
+official test partition contains 200 images from 200 held-out concepts and 80
+repetitions per image. The derived release also provides normalized
+512-dimensional CLIP ViT-B/32 image features \cite{radford2021clip}.
+
+For the primary experiment, all available repetitions are averaged before
+encoding: four during training and 80 during testing. This asymmetry raises
+test-time signal-to-noise ratio and means the reported results do not measure
+single-trial decoding. No new human participants were recruited, and this work
+uses only the released, anonymized dataset under its original data-governance
+and ethics procedures.
+
+\subsection{Leakage-aware split}
+
+The official test set remains untouched during training and model selection.
+Within the training partition, concepts rather than trials or image instances
+are randomly divided with seed 42: 1,489 concepts (14,890 images) are used for
+optimization and 165 concepts (1,650 images) for validation. Thus, no
+validation concept appears in training. This controls semantic memorization in
+addition to the trial/block leakage concerns identified in prior EEG work
+\cite{li2019training_test_set,brookshire2024leakage}.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/pipeline.png}
+  \caption{Primary evaluation pipeline. The EEG encoder predicts a normalized
+  visual feature, which is compared by cosine similarity with candidate image
+  features. Image synthesis is not part of the primary retrieval result.}
+  \label{fig:pipeline}
+\end{figure}
+
+\section{Method}
+
+\subsection{EEG encoder}
+
+The encoder follows the compact temporal--spatial pattern of EEGNet
+\cite{lawhern2018eegnet}. Input $x\in\mathbb{R}^{63\times250}$ first passes
+through a temporal convolution with 32 filters and kernel width 25. A grouped
+spatial convolution spans all 63 channels and produces 64 feature maps. After
+batch normalization, GELU activation, average pooling, and dropout, a
+depthwise temporal convolution of width 15 and a pointwise convolution produce
+128 maps. A second pooling stage leaves 15 temporal positions. The flattened
+representation is projected to 512 dimensions, layer-normalized, and
+$\ell_2$-normalized.
+
+\subsection{Alignment objective}
+
+Let $\hat{z}_i$ denote the normalized EEG prediction and $z_i$ the normalized
+visual feature for item $i$. For a batch of size $B$, similarities are
+\[
+  s_{ij} = \frac{\hat{z}_i^\top z_j}{\tau},
+\]
+where $\tau=0.07$. We optimize symmetric cross-entropy over EEG-to-image and
+image-to-EEG directions, plus cosine alignment:
+\[
+  \mathcal{L} =
+  \frac{1}{2}\left[
+    \operatorname{CE}(S,I)+\operatorname{CE}(S^\top,I)
+  \right]
+  + 0.25\left(1-\frac{1}{B}\sum_i \hat{z}_i^\top z_i\right).
+\]
+Images sharing a concept are masked as off-diagonal negatives so the objective
+does not explicitly push semantically equivalent images apart.
+
+The model is trained for 12 epochs with AdamW, learning rate
+$3\times10^{-4}$, weight decay $10^{-3}$, batch size 128, dropout 0.35, and
+gradient-norm clipping at 1.0. Temporal kernels span 100\,ms and 60\,ms at the
+250\,Hz sampling rate. The fixed 12-epoch budget and remaining hyperparameters
+were chosen before test evaluation. The checkpoint with the highest validation
+concept recall at 5 is selected; this was the final epoch and validation had
+not fully saturated, so the run should be treated as a baseline rather than an
+optimized estimate.
+
+\subsection{Retrieval evaluation}
+
+At test time, each EEG prediction is compared with all 200 image features by
+cosine similarity. Recall at $k$ is one when the paired test image appears in
+the top $k$ candidates. Because the official gallery has one image per
+concept, image and concept recall are identical on this split. Analytical
+chance is $k/200$. We additionally apply one deterministic random permutation
+to EEG--stimulus correspondences and report the resulting shuffled control.
+Because only one permutation is used, this control is expected to fluctuate
+around analytical chance and is not a permutation-test estimate.
+
+\section{Results}
+
+\begin{table}[t]
+  \centering
+  \caption{Subject 01 retrieval on the official 200-concept test gallery.
+  Confidence intervals are 95\% Wilson intervals over 200 test concepts.}
+  \label{tab:retrieval}
+  \begin{tabular}{lrrrr}
+    \toprule
+    Metric & Model & 95\% CI & Chance & Shuffled EEG\\
+    \midrule
+    Recall@1  & 13.5\% & [9.4, 18.9]  & 0.5\% & 0.5\%\\
+    Recall@5  & 41.0\% & [34.4, 47.9] & 2.5\% & 2.0\%\\
+    Recall@10 & 59.0\% & [52.1, 65.6] & 5.0\% & 3.5\%\\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.96\linewidth]{figures/retrieval_metrics.png}
+  \caption{Retrieval accuracy substantially exceeds analytical chance and a
+  fixed shuffled-EEG control at each value of $k$.}
+  \label{fig:retrieval}
+\end{figure}
+
+Table~\ref{tab:retrieval} and Figure~\ref{fig:retrieval} summarize the primary
+result. The correct image is ranked first for 27 of 200 concepts, within the
+top five for 82, and within the top ten for 118. The median rank is 8 and the
+mean rank is 17.11. Mean paired cosine similarity is 0.219.
+
+Under an independent-query binomial approximation, recall at 1 is above chance
+with $p<10^{-20}$. The Wilson intervals and this tail probability treat queries
+as independent, an approximation because all queries share the same gallery.
+These calculations establish performance above random gallery selection under
+the stated test protocol; they do not establish
+cross-subject generalization or rule out every dataset confound.
+
+\subsection{Training behavior}
+
+Concept recall at 5 on the validation partition rises from 4.97\% after the
+first epoch to 21.39\% after epoch 12, compared with analytical chance of
+approximately 3.00\%. Validation image recall at 5 reaches 8.12\%, compared
+with image-level chance of approximately 0.30\%. The
+divergence between image and concept retrieval on validation is expected
+because each validation concept has multiple image instances.
+
+\section{Generation Stress Tests}
+
+We evaluated generation separately from retrieval to avoid conflating visual
+plausibility with decoded information.
+
+\paragraph{Feature-to-pixel decoder.}
+A transposed-convolution decoder trained to map provided visual features to
+$64\times64$ pixels reached a best concept-disjoint validation
+multi-scale reconstruction loss of 0.1715. When driven by predicted EEG
+features, outputs preserved broad color and low-frequency layout but were
+blurred and lacked recognizable object identity. This exposes a distribution
+mismatch between true visual features used to train the decoder and noisy EEG
+predictions used at inference.
+
+\paragraph{Single-subject conditional GAN.}
+We jointly trained a temporal--spatial EEG encoder, transposed-convolution
+generator, and projection discriminator from random initialization, using no
+external visual weights. The six-epoch run used Adam, batch size 256,
+generator and discriminator learning rates of $2\times10^{-4}$ and
+$10^{-4}$, and an $\ell_1$ weight of 10. Validation $\ell_1$ error improved
+to 0.4442 at epoch 4 and then degraded. A training-set mean-image baseline
+achieves 0.4382 on the same validation partition, so the generator does not
+beat this trivial baseline. Across a fixed eight-image test sample, mean
+pairwise output RMSE is 0.00048, versus 0.3395 among the corresponding target
+images (all scaled to $[0,1]$). Generated outputs are therefore nearly
+invariant and noise-dominated under this training budget.
+
+\paragraph{Ten-subject conditional GAN.}
+To test whether additional neural observations resolve collapse, we trained a
+subject-conditioned variant across all ten locally available subjects. Subject
+files were streamed sequentially, with 1,500 images sampled per subject and
+epoch from the same at-most 14,890-image training pool. Four epochs exposed
+the model to 60,000 subject--image examples while retaining four averaged
+repetitions per image.
+Validation $\ell_1$ was best after epoch 1 (0.4480) and subsequently degraded
+to 0.4565. Mean pairwise output RMSE is 0.0822 on the same fixed eight-image
+sample, still far below target diversity of 0.3395. Outputs remained
+noise-dominated. This compute-bounded stress test suggests that adding subjects
+did not compensate for limited unique visual examples or adversarial
+instability under our setup. It does not imply that all direct EEG-conditioned
+generators must fail.
+
+\paragraph{Pretrained diffusion visualization.}
+For qualitative demonstration only, predicted top-1 concepts were converted
+to text prompts and rendered with SD-Turbo, a distilled pretrained diffusion
+model \cite{sauer2023add}. These images are sharp because the diffusion model
+supplies a large external visual prior. They are semantic renderings of the
+decoded class, not direct EEG-to-pixel reconstructions, and are excluded from
+the quantitative claims. The only EEG-derived signal passed to the generator
+is one discrete class selected from 200 candidates (at most
+$\log_2 200\approx7.6$ bits); no continuous EEG or image feature enters the
+diffusion model.
+
+\section{Discussion}
+
+The retrieval result shows that repetition-averaged Subject 01 EEG contains
+information that generalizes to unseen THINGS-EEG2 concepts in a closed
+200-candidate gallery. The gap between recall and chance is large, and the
+shuffled control is consistent with random correspondence. The experiment
+therefore supports coarse semantic decoding under this protocol.
+
+The generation experiments produce a complementary conclusion. Pixel losses
+encourage average-looking images, while adversarial training with limited
+paired data is unstable. Increasing the number of subjects adds neural
+observations but not new image content: the ten-subject experiment draws from
+the same at-most 14,890-image training pool and only ten images per concept.
+Learning both a broad natural-image distribution and an EEG-conditioned
+mapping from this corpus proved unsuccessful.
+
+A stronger future design would train a discrete image autoencoder or
+generative prior on a substantially larger image corpus, freeze the visual
+decoder, and then align EEG with its latent representation. If the visual
+model is pretrained, evaluation should separately quantify what information
+comes from EEG, for example through retrieval, ablations, shuffled controls,
+and comparisons against class-only prompts.
+
+\section{Limitations}
+
+The primary result is subject-specific and uses only Subject 01. Eighty test
+repetitions are averaged for each stimulus, so performance should not be
+interpreted as real-time or single-trial decoding. Evaluation is closed-set:
+the model ranks a known gallery rather than identifying an arbitrary image
+from the open world. The study uses provided ViT-B/32 features and therefore
+inherits their pretrained visual semantics. Only one training seed and one
+shuffled permutation are reported. Hyperparameters were selected for a
+practical baseline rather than through a comprehensive search. Finally,
+direct image generation did not succeed; visual realism from the auxiliary
+diffusion experiment comes primarily from the pretrained generator.
+
+\section{Conclusion}
+
+A compact EEG encoder can retrieve unseen visual concepts from the official
+THINGS-EEG2 test gallery substantially above chance when repeated trials are
+averaged. In contrast, direct generators trained from scratch on the available
+paired images collapse or produce blurred, noise-dominated outputs. The key
+methodological conclusion is that semantic EEG decoding and photorealistic
+image synthesis must be evaluated separately. Retrieval provides evidence
+about information present in EEG, whereas a powerful image prior determines
+much of the appearance of generated samples.
+
+\section*{Reproducibility}
+
+Training, evaluation, and analysis code given the derived UBP-preprocessed
+release, along with commands, dependency specifications, tests, configurations,
+and result artifacts, are available at
+\url{https://github.com/harshit-goyal/brain-to-image}. Large dataset files and
+model checkpoints are excluded from version control. The repository records
+the random seed, architecture, split procedure, analytical baselines, and
+fixed shuffled control used for the reported experiment.
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

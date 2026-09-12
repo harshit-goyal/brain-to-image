@@ -1,0 +1,5 @@
+Main TeX file: main.tex
+TeX processor: pdfLaTeX
+
+The source package contains only files required to compile the manuscript.
+The included main.bbl was generated with BibTeX from references.bib.

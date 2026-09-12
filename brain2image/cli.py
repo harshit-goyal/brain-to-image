@@ -269,6 +269,10 @@ def command_evaluate(args: argparse.Namespace) -> None:
         "subject": subject,
         "split": args.split,
         "checkpoint": str(args.checkpoint),
+        "checkpoint_epoch": checkpoint.get("best_validation_metrics", {}).get(
+            "epoch"
+        ),
+        "repetitions_averaged": args.repetitions or split.eeg.shape[1],
         "metrics": metrics,
     }
     rendered = json.dumps(output, indent=2)
