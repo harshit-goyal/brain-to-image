@@ -1,6 +1,6 @@
 # arXiv submission package
 
-The manuscript is a ten-page research paper reporting the measured
+The manuscript is an eleven-page research paper reporting the measured
 THINGS-EEG2 retrieval experiment, three-seed and robustness analyses, and
 negative results from direct generation. It deliberately does not describe
 pretrained diffusion output as direct brain-image reconstruction.
@@ -24,7 +24,7 @@ The compiled paper is `brain-to-image-paper.pdf`. The upload-ready source archiv
 - **Cross-list:** `q-bio.NC`
 - **Author:** Harshit Goyal
 - **Affiliation:** BITS Pilani, India
-- **Comments:** 10 pages, 4 figures, 7 tables. Code and reproducibility artifacts available
+- **Comments:** 11 pages, 6 figures, 7 tables. Code and reproducibility artifacts available
   at <https://github.com/harshit-goyal/brain-to-image>.
 - **Suggested license:** CC BY 4.0, matching the author's prior arXiv submission
 

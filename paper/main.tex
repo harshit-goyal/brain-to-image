@@ -16,9 +16,8 @@
 }
 \setlength{\emergencystretch}{2em}
 
-\title{EEG-to-Image Retrieval under Limited Data:\\
-A Reproducible THINGS-EEG Baseline with From-Scratch Generation
-Stress Tests}
+\title{Brain-to-Image Generation: Reconstructing Visual Stimuli from EEG
+using Generative Adversarial Networks}
 \author{
   Harshit Goyal\\
   BITS Pilani, India\\
@@ -190,6 +189,16 @@ and ethics procedures.
     \bottomrule
   \end{tabular}
 \end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/training_samples.png}
+  \caption{Representative stimulus images from eight distinct concepts in the
+  Subject 01 optimization partition. The complete optimization set contains
+  14,890 images spanning 1,489 concepts; this montage illustrates its visual
+  diversity rather than a cherry-picked performance subset.}
+  \label{fig:training-samples}
+\end{figure}
 
 \subsection{Leakage-aware split}
 
@@ -466,6 +475,18 @@ and uncertainty estimates.
 
 We evaluated generation separately from retrieval to avoid conflating visual
 plausibility with decoded information.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{figures/generation_comparison.png}
+  \caption{Qualitative outputs for four held-out test stimuli. The direct
+  feature-to-pixel decoder preserves only coarse color and layout. Both
+  generators trained from random initialization are noise-dominated. The
+  pretrained rendering is sharp because a large diffusion prior receives the
+  EEG-retrieved class label; it is a semantic visualization, not recovery of
+  the target image.}
+  \label{fig:generation-comparison}
+\end{figure}
 
 \paragraph{Feature-to-pixel decoder.}
 A transposed-convolution decoder trained to map provided visual features to
